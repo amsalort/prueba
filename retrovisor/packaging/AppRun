@@ -1,0 +1,15 @@
+#!/bin/sh
+# Lanzador interno del AppImage de RetroVisor.
+HERE="$(dirname "$(readlink -f "$0")")"
+export APPDIR="${APPDIR:-$HERE}"
+# Guardar el entorno original para los programas del sistema que lance el visor.
+[ -n "${LD_LIBRARY_PATH+x}" ] && export RETROVISOR_ORIG_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
+[ -n "${QT_PLUGIN_PATH+x}" ] && export RETROVISOR_ORIG_QT_PLUGIN_PATH="$QT_PLUGIN_PATH"
+unset QT_PLUGIN_PATH QT_QPA_PLATFORM_PLUGIN_PATH PYTHONHOME PYTHONPATH
+# Mint Cinnamon usa X11; en Wayland Qt usa XWayland si no hay plugin propio.
+if [ -z "$QT_QPA_PLATFORM" ] && [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+    export QT_QPA_PLATFORM="wayland;xcb"
+fi
+export RETROVISOR_CJPEG="$APPDIR/usr/bin/cjpeg"
+export RETROVISOR_JPEGTRAN="$APPDIR/usr/bin/jpegtran"
+exec "$APPDIR/usr/lib/retrovisor/retrovisor" "$@"
